@@ -23,18 +23,31 @@ namespace Players
             m_navMeshMouseResolver.Initialize(Camera.main);
         }
 
-
-
-(Mouse.current.rightButton.wasPressedThisFrame)
+        private void SetCursor()
         {
-            Debug.Log("Pressed Mouse");
+            var texture = m_config.cursorTexture;
+
+            if (texture)
+            {
+                var hotspot = new Vector2(texture.width / 2f, texture.height / 2f);
+                Cursor.SetCursor(texture, hotspot, CursorMode.Auto);
+            }
         }
 
-        
-        
+        private void Update()
+        {
+            Vector3 mousePosition = Mouse.current.position.ReadValue();
+            var lookPoint = m_playerRotationCalculator.Calculate(mousePosition);
+            m_playerMovment.RotateTowards(lookPoint);
 
-    }
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                Vector3? navPoint = m_navMeshMouseResolver.GetNavMeshPoint(mousePosition);
 
-    
-
+                if (navPoint.HasValue)
+                {
+                    m_playerMovement.SetDestination(navPoint.Value);
+                }
+            }
+        }
 }
