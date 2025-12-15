@@ -1,28 +1,46 @@
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.InputSystem;
 
-public class NavMashMouseResolver : MonoBehaviour
+namespace Players
 {
-    [SerializeField] private LAyerMask m_layerMask;
-
-    [SerilizeField][Min(0)] private LaterMask m_layerMask = ~0;
-    [SerilizeField][Min(0)] private floatloat m_navMeshSampleMaxDistance = 100f;
-
-    private Camera m_camera;
-
-    private void Vector3? GetNavMeshPoint(Vector3 mousePosition)
+    public class NaveshMouseResolver : MonoBehaviour
     {
+        [SerializeField] private LayerMask m_layerMask = ~0;
+        [SerializeField] [Min(0)] private float m_raycastDistance = 1000f;
+        [SerializeField] [Min(0)] private float m_navMeshSampleMaxDistance = 100f;
 
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        private Camera m_camera;
+
+        private void OnValidate()
         {
-            var ray = m_camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (!m_camera)
+            {
+                m_camera = Camera.main;
+            }
+        }
 
+        public void Initialize(Camera camera)
+        {
+            m_camera = camera;
+        }
 
+        public Vector3? GetNavMeshPoint(Vector3 mousePosition)
+        {
+            if (m_camera == null)
+                return null;
+
+            var ray = m_camera.ScreenPointToRay(mousePosition);
 
             if (Physics.Raycast(ray, out RaycastHit hit, m_raycastDistance, m_layerMask))
             {
-                if (NavMesh.SemplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh ))
-
-                    m_movement.Set(hitInfo.)
+                if (NavMesh.SamplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh.AllAreas))
+                {
+                    return navHit.position;
                 }
+            }
+
+            return null;
         }
     }
+}

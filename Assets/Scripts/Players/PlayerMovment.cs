@@ -1,33 +1,62 @@
+using System;
 using UnityEngine;
+using UnityEngine.AI;
 
-public class PlayerMovment : MonoBehaviour
+namespace Players
 {
-    [SerializeField] private NavMeshAgent m_agent;
-
-
-    private void private void OnValidate() 
+    [RequireComponent(typeof(NavMeshAgent))]
+    public class PlayerMovement : MonoBehaviour
     {
-        
-        if(!m_agent)
+        public event Action Stopped;
+        public event Action<Vector3> DestinationChanged;
+
+        [SerializeField] private NavMeshAgent m_agent;
+
+        private float m_speed;
+        private bool m_hasDestination;
+
+        private void OnValidate()
         {
-            m_agent = GetComponent<NavMeshAgent>();
+            if (!m_agent)
+            {
+                m_agent = GetComponent<NavMeshAgent>();
+            }
+        }
+
+        private void Awake() =>
+            Initialize(m_speed);
+
+        private void Update()
+        {
+            if (!m_hasDestination || m_agent.pathPending)
+            {
+                return;
+            }
+
+            if (m_agent.remainingDistance <= m_agent.stoppingDistance)
+            {
+                if (!m_agent.hasPath || m_agent.velocity.sqrMagnitude <= 0.001f)
+                {
+                    m_hasDestination = false;
+                    Stopped?.Invoke();
+                }
+            }
+        }
+
+        public void Initialize(float speed)
+        {
+            m_speed = speed;
+            if (m_agent)
+                m_agent.speed = speed;
+        }
+
+        public void SetDestination(Vector3 navMeshPoint)
+        {
+            if (m_agent)
+                m_agent.SetDestination(navMeshPoint);
+
+            m_hasDestination = true;
+            DestinationChanged?.Invoke(navMeshPoint);
         }
     }
-
-    private void Awake()
-    {
-        Initialize(m_speed);
-    }
-
-    public void Initialize(float speed)
-    {
-        m_speed = speed;
-        m_agent.speed = speed;  
-    }
-
-    public void Set (Vector3 navMeshPoint)
-    {
-        m_agent.SetDistination(navMeshPoint);
-    }
-
 }
