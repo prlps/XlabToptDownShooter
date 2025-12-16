@@ -1,28 +1,32 @@
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.InputSystem;
 
 public class NavMashMouseResolver : MonoBehaviour
 {
-    [SerializeField] private LAyerMask m_layerMask;
-
-    [SerilizeField][Min(0)] private LaterMask m_layerMask = ~0;
-    [SerilizeField][Min(0)] private floatloat m_navMeshSampleMaxDistance = 100f;
+    [SerializeField] private LayerMask m_layerMask;
+    [SerializeField] [Min(0f)] private float m_raycastDistance =1000f;
+    [SerializeField] [Min(0f)] private float m_navMeshSampleMaxDistance =100f;
 
     private Camera m_camera;
 
-    private void Vector3? GetNavMeshPoint(Vector3 mousePosition)
+    public void Initialize(Camera camera)
     {
-
-        if (Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            var ray = m_camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-
-
-            if (Physics.Raycast(ray, out RaycastHit hit, m_raycastDistance, m_layerMask))
-            {
-                if (NavMesh.SemplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh ))
-
-                    m_movement.Set(hitInfo.)
-                }
-        }
+        m_camera = camera;
     }
+
+    public Vector3? GetNavMeshPoint(Vector3 mousePosition)
+    {
+        var ray = m_camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        if (Physics.Raycast(ray, out RaycastHit hit, m_raycastDistance, m_layerMask))
+        {
+            if (NavMesh.SamplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh.AllAreas))
+            {
+                return navHit.position;
+            }
+        }
+
+        return null;
+    }
+}

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class PlayerRotationCaclcualtor
+public sealed class PlayerRotationCalculator
 {
     private readonly Camera m_camera;
     private readonly Transform m_playerTransform;
@@ -13,7 +13,7 @@ public sealed class PlayerRotationCaclcualtor
 
     public Vector3 Calculate(Vector3 mousePosition)
     {
-        var playerScreenPosition = m_camera.WorldToScreenpoint(m_playerTransform.position);
+        var playerScreenPosition = m_camera.WorldToScreenPoint(m_playerTransform.position);
         var delta = (Vector2)mousePosition - (Vector2)playerScreenPosition;
 
         var cameraRight = m_camera.transform.right;
@@ -24,14 +24,13 @@ public sealed class PlayerRotationCaclcualtor
         cameraForward.y = 0f;
         cameraForward.Normalize();
 
-        var cameraForward = cameraRight * delta.x + cameraForward * delta.y;
-        worldDirection.y = 0f;
+        var worldDirection = cameraRight * delta.x + cameraForward * delta.y;
 
         if (worldDirection.sqrMagnitude > 0.0001f)
         {
             return m_playerTransform.position + worldDirection;
         }
 
-        return Vector3.zero
+        return Vector3.zero;
     }
 }
