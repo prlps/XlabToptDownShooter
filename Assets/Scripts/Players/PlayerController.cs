@@ -1,59 +1,55 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+namespace Players
 {
-    [SerializeField] private PlayerConfig m_config;
-    [SerializeField] private PlayerMovment m_movement;
-    [SerializeField] private Transform m_targetPosition;
-
-    private NavMashMouseResolver m_navMeshMouseResolver;
-    private PlayerRotationCalculator m_playerRotationCalculator;
-
-    private void OnValidate()
+    [RequireComponent(typeof(PlayerMovement))]
+    [RequireComponent(typeof(NavMeshMouseResolver))]
+    public class PlayerController : MonoBehaviour
     {
-        if (!m_movement)
+        [SerializeField] private PlayerConfig m_config;
+        [SerializeField] private PlayerMovement m_playerMovement;
+        [SerializeField] private NavMeshMouseResolver m_mouseResolver;
+
+        private PlayerRotationCalculator m_playerRotationCalculator;
+
+        private void OnValidate()
         {
-            m_movement = GetComponent<PlayerMovment>();
+            if (m_playerMovement == null) m_playerMovement = GetComponent<PlayerMovement>();
+            if (m_mouseResolver == null) m_mouseResolver = GetComponent<NavMeshMouseResolver>();
         }
-        if (!m_navMeshMouseResolver)
+
+        private void Start()
         {
-            m_navMeshMouseResolver = GetComponent<NavMashMouseResolver>();
+            var cam = Camera.main;
+            if (m_mouseResolver != null && cam != null) m_mouseResolver.Initialize(cam);
+            m_playerRotationCalculator = new PlayerRotationCalculator(cam, transform);
+            if (m_playerMovement != null && m_config != null) m_playerMovement.Initialize(m_config.Speed, m_config.AngularSpeed);
+            SetupCursor();
         }
-    }
 
-    private void Start()
-    {
-        var camera = Camera.main;
-        m_navMeshMouseResolver.Initialize(camera);
-        m_playerRotationCalculator = new PlayerRotationCalculator(camera, transform);
-        m_movement.Initialize(m_config.speed, m_config.angularSpeed);
-
-        SetupCursor();
-    }
-
-    private void SetupCursor()
-    {
-        var texture = m_config.cursorTexture;
-        if (texture)
+        private void SetupCursor()
         {
-            var hotspot = new Vector2(texture.width / 2f, texture.height / 2f);
-            Cursor.SetCursor(texture, hotspot, CursorMode.Auto);
-        }
-    }
-
-    private void Update()
-    {
-        Vector3 mousePosition = Mouse.current.position.ReadValue();
-        var lookPoint = m_playerRotationCalculator.Calculate(mousePosition);
-        m_movement.RotateTowards(lookPoint);
-
-        if (Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            Vector3? navPoint = m_navMeshMouseResolver.GetNavMeshPoint(mousePosition);
-            if (navPoint.HasValue)
+            var texture = m_config != null ? m_config.CursorTexture : null;
+            if (texture != null)
             {
-                m_movement.SetDestination(navPoint.Value);
+                var hotspot = new Vector2(texture.width / 2f, texture.height / 2f);
+                Cursor.SetCursor(texture, hotspot, CursorMode.Auto);
+            }
+        }
+
+        private void Update()
+        {
+            if (m_playerRotationCalculator == null || m_mouseResolver == null || m_playerMovement == null) return;
+
+            Vector3 mousePosition = Mouse.current.position.ReadValue();
+            var lookPoint = m_playerRotationCalculator.Calculate(mousePosition);
+            m_playerMovement.RotateTowards(lookPoint);
+
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                Vector3? navPoint = m_mouseResolver.GetNavMeshPoint(mousePosition);
+                if (navPoint.HasValue) m_playerMovement.SetDestination(navPoint.Value);
             }
         }
     }

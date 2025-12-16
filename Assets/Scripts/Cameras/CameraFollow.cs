@@ -11,13 +11,11 @@ public class CameraFollow : MonoBehaviour
     private void LateUpdate()
     {
         if (!m_target)
-        {
             return;
-        }
 
         var targetPosition = m_target.position + m_offset;
         transform.position = Vector3.SmoothDamp(transform.position, targetPosition, ref m_velocity, m_smoothTime);
     }
-    public void SetTarget(Transform target) =>
-        m_target = target;
+
+    public void SetTarget(Transform target) => m_target = target;
 }
