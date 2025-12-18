@@ -1,13 +1,11 @@
+using System.Linq;
 using UnityEngine;
 
-public abstract class BaseSpellData : MonoBehaviour
+public abstract class BaseSpellData : ScriptableObject
 {
     [SerializeField] private string m_spellName;
     [SerializeField] private GameObject m_visualEffect;
     [SerializeField] private ElementType[] m_combination;
-
-    [SerialieReferenceDropdown]
-    SerializeReference private Ieffect
 
     [SerializeField] private IEffect[] m_effects;
 
@@ -17,9 +15,12 @@ public abstract class BaseSpellData : MonoBehaviour
 
     public IReadOnlyList<ElementType> combination => m_combination;
 
-   private void OnValidate()
+    private void OnValidate()
     {
-        if (m_combination? > 3)
+        if (m_combination == null)
+            return;
+
+        if (m_combination.Length > 3)
         {
             m_combination = m_combination.Take(3).ToArray();
         }

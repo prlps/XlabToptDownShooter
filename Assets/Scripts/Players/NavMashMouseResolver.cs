@@ -1,28 +1,57 @@
 using UnityEngine;
+using UnityEngine.AI;
+using UnityEngine.InputSystem;
 
-public class NavMashMouseResolver : MonoBehaviour
+namespace Players
 {
-    [SerializeField] private LAyerMask m_layerMask;
-
-    [SerilizeField][Min(0)] private LaterMask m_layerMask = ~0;
-    [SerilizeField][Min(0)] private floatloat m_navMeshSampleMaxDistance = 100f;
-
-    private Camera m_camera;
-
-    private void Vector3? GetNavMeshPoint(Vector3 mousePosition)
+    public class NavMeshMouseResolver : MonoBehaviour
     {
+        [SerializeField] private LayerMask m_layerMask = ~0;
+        [SerializeField] [Min(0)] private float m_raycastDistance = 1000f;
+        [SerializeField] [Min(0)] private float m_navMeshSampleMaxDistance = 100f;
 
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        private Mouse m_mouse;
+        private Camera m_camera;
+
+        private void Awake()
         {
-            var ray = m_camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            m_camera = Camera.main;
+            m_mouse = Mouse.current;
+        }
 
+        public Vector3 mousePosition => m_mouse.position.ReadValue();
 
+        public Vector3? GetNavMeshPoint(Vector3 mousePosition)
+        {
+            var ray = m_camera.ScreenPointToRay(mousePosition);
 
             if (Physics.Raycast(ray, out RaycastHit hit, m_raycastDistance, m_layerMask))
             {
-                if (NavMesh.SemplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh ))
-
-                    m_movement.Set(hitInfo.)
+                if (NavMesh.SamplePosition(hit.point, out var navHit, m_navMeshSampleMaxDistance, NavMesh.AllAreas))
+                {
+                    return navHit.position;
                 }
+            }
+
+            return null;
+        }
+
+        public Vector3? GetCursoureWorldPosition()
+        {
+            var ray = m_camera.ScreenPointToRay(mousePosition);
+
+            if (Physics.Raycast(ray, out var hit))
+            {
+                return hit.point;
+            }
+
+            var plane = new Plane(Vector3.up, Vector3.zero);
+            if (plane.Raycast(ray, out var distance))
+            {
+                return ray.GetPoint(distance);
+            }
+
+            return null;
         }
     }
+}
