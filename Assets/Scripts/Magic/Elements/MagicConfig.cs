@@ -10,7 +10,7 @@ public sealed class MagicConfig : ScriptableObject
 
     public ElementData ElementData => m_elementsData;
 
-    public SpellDataBase SpellsDataBase => m_spellDataBase;
+    public SpellDataBase SpellDataBase => m_spellDataBase;
 
     public int MaxElements => m_maxElements;
 
