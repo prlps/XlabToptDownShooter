@@ -8,7 +8,6 @@ public abstract class BaseSpellData : ScriptableObject
     [SerializeField] private GameObject m_visualEffect;
     [SerializeField] private ElementType[] m_combination;
 
-    [SerializeReference]
     [SerializeField] private IEffect[] m_effects;
 
     public string spellName => m_spellName;
@@ -19,7 +18,8 @@ public abstract class BaseSpellData : ScriptableObject
 
     private void OnValidate()
     {
-        if (m_combination == null) return;
+        if (m_combination == null)
+            return;
 
         if (m_combination.Length > 3)
         {
