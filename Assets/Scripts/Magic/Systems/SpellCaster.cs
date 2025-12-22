@@ -60,13 +60,25 @@ namespace Magic.Systems
 
         private void CastTarget(TargetSpellData targetSpell, Vector3 worldPosition)
         {
-            if (!targetSpell.visualEffect)
-            {
-                Debug.LogError("Target spell must have visualEffect");
-                return;
-            }
+            GameObject projectileObj;
 
-            var projectileObj = Object.Instantiate(targetSpell.visualEffect, m_casterTransform.position, Quaternion.identity);
+            if (targetSpell.visualEffect)
+            {
+                projectileObj = Object.Instantiate(targetSpell.visualEffect, m_casterTransform.position, Quaternion.identity);
+            }
+            else
+            {
+                projectileObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                projectileObj.transform.position = m_casterTransform.position;
+                projectileObj.name = string.IsNullOrEmpty(targetSpell.spellName) ? "Projectile" : targetSpell.spellName + "_Projectile";
+
+                var collider = projectileObj.GetComponent<Collider>();
+                if (collider != null)
+                    collider.isTrigger = true;
+
+                var rb = projectileObj.AddComponent<Rigidbody>();
+                rb.isKinematic = true;
+            }
 
             var spellProjectile = projectileObj.GetComponent<ISpellProjectile>() ?? projectileObj.AddComponent<FallbackSpellProjectile>();
 

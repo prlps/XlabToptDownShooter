@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Magic.Systems;
 
 namespace Players
 {
@@ -10,6 +11,7 @@ namespace Players
         [SerializeField] private PlayerConfig m_config;
         [SerializeField] private PlayerMovement m_playerMovement;
         [SerializeField] private NavMeshMouseResolver m_mouseResolver;
+        [SerializeField] private MagicInputHelper m_inputHelper;
 
         private PlayerRotationCalculator m_playerRotationCalculator;
 
@@ -26,6 +28,12 @@ namespace Players
             m_playerRotationCalculator = new PlayerRotationCalculator(cam, transform);
             if (m_playerMovement != null && m_config != null) m_playerMovement.Initialize(m_config.Speed, m_config.AngularSpeed);
             SetupCursor();
+
+            if (m_inputHelper != null)
+            {
+                var magic = GetComponent<MagicSystem>();
+                if (magic != null) m_inputHelper.Bind(magic);
+            }
         }
 
         private void SetupCursor()
@@ -51,6 +59,8 @@ namespace Players
                 Vector3? navPoint = m_mouseResolver.GetNavMeshPoint(mousePosition);
                 if (navPoint.HasValue) m_playerMovement.SetDestination(navPoint.Value);
             }
+
+            if (m_inputHelper != null) m_inputHelper.Update();
         }
     }
 }

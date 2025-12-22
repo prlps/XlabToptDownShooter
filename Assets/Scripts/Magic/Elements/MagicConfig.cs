@@ -1,5 +1,7 @@
 using UnityEngine;
+using System.Collections.Generic;
 
+[CreateAssetMenu(fileName = "MagicConfig", menuName = "XLab/Magic/MagicConfig")]
 public sealed class MagicConfig : ScriptableObject
 {
     [SerializeField] private ElementData m_elementsData;

@@ -22,31 +22,43 @@ namespace Magic.Systems
 
         public void Update()
         {
+            if (m_magicSystem == null)
+                return;
+
             if (!m_isInitialized)
             {
                 Initialize();
             }
-            
-            if (m_keyboard[m_element1Key].wasPressedThisFrame)
+
+            if (m_keyboard != null)
             {
-                m_magicSystem.AddElement(ElementType.Element1);
+                if (m_keyboard[m_element1Key]?.wasPressedThisFrame == true)
+                {
+                    m_magicSystem.AddElement(ElementType.Element1);
+                }
+                else if (m_keyboard[m_element2Key]?.wasPressedThisFrame == true)
+                {
+                    m_magicSystem.AddElement(ElementType.Element2);
+                }
+                else if (m_keyboard[m_element3Key]?.wasPressedThisFrame == true)
+                {
+                    m_magicSystem.AddElement(ElementType.Element3);
+                }
+                else if (m_keyboard[m_element4Key]?.wasPressedThisFrame == true)
+                {
+                    m_magicSystem.AddElement(ElementType.Element4);
+                }
             }
-            else if (m_keyboard[m_element2Key].wasPressedThisFrame)
+
+            if (m_mouse != null)
             {
-                m_magicSystem.AddElement(ElementType.Element2);
-            }
-            else if (m_keyboard[m_element3Key].wasPressedThisFrame)
-            {
-                m_magicSystem.AddElement(ElementType.Element3);
-            }
-            else if (m_keyboard[m_element4Key].wasPressedThisFrame)
-            {
-                m_magicSystem.AddElement(ElementType.Element4);
-            }
-            
-            if (m_mouse.leftButton.wasPressedThisFrame)
-            {
-                m_magicSystem.TryCastSpell();
+                var left = m_mouse.leftButton;
+                var right = m_mouse.rightButton;
+
+                if ((left != null && left.wasPressedThisFrame) || (right != null && right.wasPressedThisFrame))
+                {
+                    m_magicSystem.TryCastSpell();
+                }
             }
         }
 
@@ -56,6 +68,11 @@ namespace Magic.Systems
             m_keyboard = Keyboard.current;
 
             m_isInitialized = true;
+        }
+
+        public void Bind(MagicSystem magicSystem)
+        {
+            m_magicSystem = magicSystem;
         }
     }
 }
