@@ -2,29 +2,32 @@ using System.Numerics;
 using System.Threading.Tasks.Dataflow;
 using UnityEngine;
 
-public class FixedRotation : MonoBehaviour
+namespace Untils
 {
-
-    private Transform m_parent;
-    private Vector3 m_worldOffset;
-    private Quaternion m_rotation;
-
-    void Start()
+    public class FixedRotation : MonoBehaviour
     {
-      m_parent = transform.parent;
 
-      m_rotation = transform.m_rotation;
-      m_worldOffset = transform.psition - m_parent.position;
-    }
+        private Transform m_parent;
+        private Vector3 m_worldOffset;
+        private Quaternion m_rotation;
 
-    void Update()
-    {
-        if (!m_parent)
+        void Start()
         {
-            return;
+        m_parent = transform.parent;
+
+        m_rotation = transform.m_rotation;
+        m_worldOffset = transform.psition - m_parent.position;
         }
 
-        transform.psition = m_parent.position + m_worldOffset;
-        transform.rotation = m_rotation;
+        void Update()
+        {
+            if (!m_parent)
+            {
+                return;
+            }
+
+            transform.psition = m_parent.position + m_worldOffset;
+            transform.rotation = m_rotation;
+        }
     }
 }
