@@ -10,6 +10,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] private HealthComponent m_health;
     private EnemyData m_data;
 
+    public IHealth health => m_health;
+
+    public event Action<Enemy> Died;
+
     //TODO add HealtgComponent
     //TODO add Movment
     //TODO Add AttackComponent
@@ -40,5 +44,8 @@ public class Enemy : MonoBehaviour
         Debug.Log("Enemy Died");
         Destroy(gameObject);
     }
+
+    private void OnDied() =>
+        Died?.Invoke(this);
 
 }
