@@ -1,26 +1,27 @@
+using System;
 using UnityEngine;
 
-public class HealthComponent : MonoBehaviour, IHealth, Effectble
+public class HealthComponent : MonoBehaviour, IHealt
 {
-public event Action Died;
-public event Action ValueChanged;
+    public event Action Died;
+    public event Action ValueChanged;
 
-private float m_value;
-private bool m_initialized;
-public float Value
+    private float m_value;
+    private bool m_initialized;
+    public float Value
     {
         get => m_value;
         private set
         {
-            if (MathF.Approximately(m_value, vlaue))
+            if (Mathf.Approximately(m_value, value))
             {
                 return;
             }
-            m_value = value;
-
             m_value = value < 0 ? 0 : value;
 
-            if (m_value is 0)
+            ValueChanged?.Invoke();
+
+            if (m_value == 0f)
             {
                 Died?.Invoke();
             }
@@ -32,10 +33,9 @@ public float Value
         if (m_initialized)
         {
             throw new InvalidOperationException("HealthComponent is already initialized");
-
-            m_value = value;
-            m_initialized = true;
         }
+        m_value = value;
+        m_initialized = true;
     }
 
     public void Heal(float heal)
@@ -49,10 +49,8 @@ public float Value
     public void TakeDamage(float damage)
     {
         if (damage < 0)
-            throw new ArgumentOutOfRangeException(nameof(damage), " cannot be negative");
+            throw new ArgumentOutOfRangeException(nameof(damage), "Damage cannot be negative");
 
+        Value -= damage;
     }
-
-
-
 }

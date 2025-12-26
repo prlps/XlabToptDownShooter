@@ -1,33 +1,35 @@
+using System;
 using UnityEngine;
 
 public class SpawnerEnemy : MonoBehaviour
 {
-    [SerializeField] private Enemy[] m_elements;
+    [SerializeField] private Enemy[] m_enemies;
     [SerializeField] private EnemyData[] m_data;
     [SerializeField] private Transform[] m_spawnPoints;
 
-    [SerializeField] private Transform[] m_spawnPoints;
-
-
-    public void Spwn()
+    public void Spawn()
     {
-        foreach (var spawnPoint in m_spwawnPoints)
+        foreach (var spawnPoint in m_spawnPoints)
         {
-            var enemy = GetEnemy();
-            var enemyData = GetEnemyData();
+            var prefab = GetEnemy();
+            var data = GetEnemyData();
 
-            var enemyInstance.health.Died += OnDied;
+            var enemyInstance = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
+            enemyInstance.Initialize(data);
+
+        
+            enemyInstance.Died += OnDied;
         }
     }
 
-    private void OnDied
+    private void OnDied(Enemy enemy)
     {
-        
+      
     }
 
-    private SpawnerEnemy GetEnemy() =>
-        m_eenemies[Random.Range(0, m_enemies.Lenghth)];
+    private Enemy GetEnemy() =>
+        m_enemies[UnityEngine.Random.Range(0, m_enemies.Length)];
 
     private EnemyData GetEnemyData() =>
-        m_data[Random.Range(0, m_data.Langth];
+        m_data[UnityEngine.Random.Range(0, m_data.Length)];
 }

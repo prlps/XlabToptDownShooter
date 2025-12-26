@@ -1,16 +1,12 @@
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.IO.Enumeration;
-using System.Runtime.CompilerServices;
+using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] 
     [SerializeField] private HealthComponent m_health;
     private EnemyData m_data;
 
-    public IHealth health => m_health;
+    public HealthComponent health => m_health;
 
     public event Action<Enemy> Died;
 
@@ -18,34 +14,45 @@ public class Enemy : MonoBehaviour
     //TODO add Movment
     //TODO Add AttackComponent
 
-    private void Awake() {
-        Initialize(m_enemyData);
+    private void Awake()
+    {
+  
     }
 
-    private void OnEnable() 
+    private void OnEnable()
     {
-        m_health.ValueChanged += () =>
+        if (m_health != null)
         {
-            Debug.Log("Health Changed {m_healt.Value}");
-        };
+            m_health.ValueChanged += OnValueChanged;
+            m_health.Died += OnDiedInternal;
+        }
     }
 
     private void OnDisable()
     {
-        m_health.Died -= OnDied;
+        if (m_health != null)
+        {
+            m_health.ValueChanged -= OnValueChanged;
+            m_health.Died -= OnDiedInternal;
+        }
     }
+
+    private void OnValueChanged()
+    {
+        Debug.Log($"Health Changed {m_health.Value}");
+    }
+
     public void Initialize(EnemyData data)
     {
         m_data = data;
-        m_health.Initialize(data.health);
+        if (m_health != null)
+            m_health.Initialize(data.healt);
     }
-    private void OnDied()
+
+    private void OnDiedInternal()
     {
         Debug.Log("Enemy Died");
+        Died?.Invoke(this);
         Destroy(gameObject);
     }
-
-    private void OnDied() =>
-        Died?.Invoke(this);
-
 }
