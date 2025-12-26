@@ -6,6 +6,12 @@ public class SpawnerEnemy : MonoBehaviour
     [SerializeField] private Enemy[] m_enemies;
     [SerializeField] private EnemyData[] m_data;
     [SerializeField] private Transform[] m_spawnPoints;
+    
+    // TODO Xlab - Remove
+    private void Start()
+    {
+        Spawn();
+    }
 
     public void Spawn()
     {
@@ -24,7 +30,8 @@ public class SpawnerEnemy : MonoBehaviour
 
     private void OnDied(Enemy enemy)
     {
-      
+        enemy.Died -= OnDied;
+        Destroy(enemy.gameObject);
     }
 
     private Enemy GetEnemy() =>

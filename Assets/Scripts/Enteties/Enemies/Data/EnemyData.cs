@@ -10,6 +10,7 @@ public class EnemyData : ScriptableObject
 
 	[SerializeField] private AttackEnemyType m_enemyType;
 	[SerializeField][Min(0)] private float m_attackRange;
+	[SerializeField] private BaseSpellData m_spell;
 
 	[Header("Attack")]
 
@@ -22,4 +23,6 @@ public class EnemyData : ScriptableObject
 	public float attackRange => m_attackRange;
 
 	public AttackEnemyType enemyType => m_enemyType;
+	
+	
 }

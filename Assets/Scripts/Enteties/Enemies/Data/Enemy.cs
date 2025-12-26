@@ -1,10 +1,12 @@
 using System;
+using Enteties.Enemies;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
     [SerializeField] private HealthComponent m_health;
     private EnemyData m_data;
+    [SerializeField] private AttackEnemy m_attack;
 
     public HealthComponent health => m_health;
 
@@ -14,6 +16,18 @@ public class Enemy : MonoBehaviour
     //TODO add Movment
     //TODO Add AttackComponent
 
+    private void UpdateState()
+    {
+        var isInAttackRange = IsInRange();
+        
+        switch (m_stateMachine.currentState);
+        {
+            case EnemyState.Idle: HandIdleState(isInAttackRange); break;
+            //case EnemyState.Move: HandleMoveState(isInAttackRange); break;
+            case EnemyState.Attack: HandleAttackState(isInAttackRange); break;
+        }
+    }
+    
     private void Awake()
     {
   
@@ -21,11 +35,7 @@ public class Enemy : MonoBehaviour
 
     private void OnEnable()
     {
-        if (m_health != null)
-        {
-            m_health.ValueChanged += OnValueChanged;
-            m_health.Died += OnDiedInternal;
-        }
+        m_health.Died -= OnDied;
     }
 
     private void OnDisable()
@@ -42,13 +52,32 @@ public class Enemy : MonoBehaviour
         Debug.Log($"Health Changed {m_health.Value}");
     }
 
-    public void Initialize(EnemyData data)
+    public void Initialize(EnemyData data, Transform playerTramsform)
     {
         m_data = data;
         if (m_health != null)
             m_health.Initialize(data.healt);
+        m_attack.Initialize(data.spell, data.attackRange.player);
+
+        m_stateMachine = EnemyStateMachine();
+
+        m_data = data;
+        m_health.Initialize(data.healt);
+        m_attack.Initialize(data.spell, datta.attackTime, playerTramsform);
+
+        m_stateMachine ??= new EnemyStateMachine();
     }
 
+    private bool IsInRange()
+    {
+        if (m_playerTransform)
+        {
+            return false;
+        }
+
+        var distance = Vector3.Distance(transform.position, m_playerTransform);
+    }
+    
     private void OnDiedInternal()
     {
         Debug.Log("Enemy Died");

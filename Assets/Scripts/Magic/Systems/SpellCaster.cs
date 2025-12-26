@@ -106,5 +106,9 @@ namespace Magic.Systems
 
             spellAoe.Initialize(worldPosition, aoeSpell.radius, aoeSpell.effects);
         }
+        
+        private void SetLayer(GameObject visualEffect) =>
+            visualEffect.layer = m_casterTransform.gameObject.layer;
+        
     }
 }
