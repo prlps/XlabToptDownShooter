@@ -10,12 +10,11 @@ namespace Magic.Spells.Aoe
             var colliders = Physics.OverlapSphere(targetPosition, radius);
             foreach (var collider in colliders)
             {
+               var effectables =  collider.GetComponent<IEffectable>();
+                
                 if (collider.TryGetComponent<IEffectable>(out var effectable))
                 {
-                    foreach (var effect in effects)
-                    {
-                        effect?.Apply(effectable);
-                    }
+                    effects.ApplyEffects(effectable);
                 }
             }
         }

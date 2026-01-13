@@ -23,7 +23,7 @@ public class Enemy : MonoBehaviour
         switch (m_stateMachine.currentState);
         {
             case EnemyState.Idle: HandIdleState(isInAttackRange); break;
-            //case EnemyState.Move: HandleMoveState(isInAttackRange); break;
+            case EnemyState.Move: HandleMoveState(isInAttackRange); break;
             case EnemyState.Attack: HandleAttackState(isInAttackRange); break;
         }
     }
@@ -66,6 +66,11 @@ public class Enemy : MonoBehaviour
         m_attack.Initialize(data.spell, datta.attackTime, playerTramsform);
 
         m_stateMachine ??= new EnemyStateMachine();
+
+        if (data.enemyType == AttackEnemyType.Melee)
+        {
+            m_stateMachine.ChangeState(EnemyState.Move);
+        }
     }
 
     private bool IsInRange()
@@ -83,5 +88,18 @@ public class Enemy : MonoBehaviour
         Debug.Log("Enemy Died");
         Died?.Invoke(this);
         Destroy(gameObject);
+    }
+    
+    private void OnStateChanged(EnemyState prviousState previousState, EnemyState nextState)
+    {
+        if (previousState is EnemyState.Move)
+        {
+            m_movment.StopMoving();
+        }
+
+        if (nextState is EnemyState.Move)
+        {
+            m_movment.StateMoving();
+        }
     }
 }

@@ -9,10 +9,14 @@ namespace Magic.Systems
     public sealed class SpellCaster
     {
         private readonly Transform m_casterTransform;
+        private ObjectPool<GameObject> m_visualEffectPool;
 
-        public SpellCaster(Transform casterTransform)
+        public SpellCaster(Transform casterTransform, bool isSingleSpell = false)
         {
+            m_isSingleSpell = isSingleSpell;
             m_casterTransform = casterTransform;
+
+            
         }
 
         public void Cast(BaseSpellData spell, Vector3 worldPosition)
@@ -105,6 +109,15 @@ namespace Magic.Systems
             var spellAoe = aoeObj.GetComponent<ISpellAoe>() ?? aoeObj.AddComponent<SpellAoe>();
 
             spellAoe.Initialize(worldPosition, aoeSpell.radius, aoeSpell.effects);
+
+            if (!m_isSingleSpell)
+            {
+                m_visualEffectPool ??= new ObjectPool<GameObject>(
+                    createFunc: Create,
+                    actionOnGet: gm => gm.SetActive(true),
+                    actionOnDestroy: Object.Destroy);
+                aoe = m_visualEffectPool.Get();
+            }
         }
         
         private void SetLayer(GameObject visualEffect) =>
