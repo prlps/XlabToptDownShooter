@@ -10,6 +10,8 @@ namespace Magic.Spells.Aoe
             var colliders = Physics.OverlapSphere(targetPosition, radius);
             foreach (var collider in colliders)
             {
+                if (collider.gameObject.layer == )
+                
                var effectables =  collider.GetComponent<IEffectable>();
                 
                 if (collider.TryGetComponent<IEffectable>(out var effectable))
