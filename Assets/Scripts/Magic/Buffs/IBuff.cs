@@ -9,5 +9,7 @@ namespace Magic.Buffs
         public void Deinitialize();
 
         public void Update(float deltaTime);
+
+        public IBuff Clone();
     }
 }

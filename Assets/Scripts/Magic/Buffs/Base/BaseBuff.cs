@@ -34,6 +34,6 @@ namespace Magic.Buffs.Base
         
         public virtual void Update(float deltaTime) {}
         
-        public
+        
     }
 }

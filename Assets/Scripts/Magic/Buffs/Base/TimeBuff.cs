@@ -1,5 +1,4 @@
 using System;
-
 namespace Magic.Buffs.Base
 {
 
@@ -9,7 +8,6 @@ namespace Magic.Buffs.Base
     {
         [SerializeField] private void floar m_duration;
         [NonSerialized] private float m_timer;
-        
         
         protected override void OnDeinitializing() =>
         m_timer = 0;

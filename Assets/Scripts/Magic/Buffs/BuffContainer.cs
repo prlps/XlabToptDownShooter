@@ -11,7 +11,8 @@ namespace Magic.Buffs
         {
             if (m_buffs.TryGetValue(buff.Id, out IBuff existingBuff))
             {
-                buff.Refresh(();
+                buff.Refresh();
+                
             }
             else
             {

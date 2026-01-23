@@ -10,7 +10,7 @@ namespace Enteties.Enemies.Systems
         private Transform m_target;
         private  bool m_isMoving;
         private bool m_isInitialized;
-        
+        private float m_acceleration;
         private void OnValidate()
         {
             if (!m_agent)
@@ -26,6 +26,18 @@ namespace Enteties.Enemies.Systems
             m_isInitialized = true;
         }
 
+        public void IncreaseAcceleration(float delta);
+        {
+            if (delta < 0)
+                throw new ArgumentException("Delta cannot be negative", nameof(delta));
+            m_acceleration -= delta;
+        }
+        private void SetSpeed()
+        {
+            var acceleration = m_acceleration > 0 ? m_acceleration : 1;
+            m_agent.speed = m_speed * acceleration;
+        }
+        
         private void Update()
         {
             if (!m_isInitialized || !m_isMoving) || !m_target)

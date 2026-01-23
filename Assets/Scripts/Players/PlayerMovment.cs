@@ -13,6 +13,7 @@ namespace Players
         [SerializeField] private NavMeshAgent m_agent;
 
         private float m_speed;
+        private float m_acceleration;
         private float m_angularSpeed;
         private bool m_hasDestination;
 
@@ -51,6 +52,13 @@ namespace Players
                 m_agent.updateRotation = false;
             }
         }
+        
+        public void IncreaseAcceleration(float delta);
+        {
+            if (delta < 0)
+                throw new ArgumentException("Delta cannot be negative", nameof(delta));
+            m_acceleration -= delta;
+        }
 
         public void SetDestination(Vector3 navMeshPoint)
         {
@@ -67,6 +75,12 @@ namespace Players
             if (dir.sqrMagnitude < 0.0001f) return;
             var targetRotation = Quaternion.LookRotation(dir, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, m_agent != null ? m_agent.angularSpeed * Time.deltaTime : m_angularSpeed * Time.deltaTime);
+        }
+
+        private void SetSpeed()
+        {
+            var acceleration = m_acceleration > 0 ? m_acceleration : 1;
+            m_agent.speed = m_speed * acceleration;
         }
     }
 }
