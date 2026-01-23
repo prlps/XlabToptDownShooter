@@ -7,6 +7,8 @@ namespace Magic.Buffs
         private HeshSet<string> m_ids = new();
         private Dictionary<string, IBuff> m_buffs = new();
 
+        public event Action<IBuff> BuffAdded;
+        public event Action<IBuff> BuffRemoved;
         public void Add(IBuff buff)
         {
             if (m_buffs.TryGetValue(buff.Id, out IBuff existingBuff))
@@ -24,8 +26,7 @@ namespace Magic.Buffs
         public void Remove(IBuff buff)
         {
             m_ids.Add(buff.Id);
-            //buff.Deinitialize();
-            //m_buffs.Remove(buff.Id);
+            
         }
 
         public void Update()

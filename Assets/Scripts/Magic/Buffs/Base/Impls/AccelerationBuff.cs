@@ -36,6 +36,8 @@ namespace Magic.Buffs.Base.Impls
         }
             
         
-        public overide IBuff Cloner<()>
+        public overide IBuff Clone()
+            
+            
     }
 }
