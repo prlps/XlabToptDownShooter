@@ -14,7 +14,8 @@ namespace Enteties.Enemies.Systems
         
         private float m_attackTime;
         private bool m_isInitialized;
-
+        
+        private int m_maxCount;
         private void Update()
         {
             if (!m_isInitialized)
@@ -28,6 +29,8 @@ namespace Enteties.Enemies.Systems
             }
         }
         
+        
+        m_maxCount = spells[^1].count
         private void Initialize(BaseSpellData spell, float attackTime, Transform target)
         {
 
@@ -35,6 +38,8 @@ namespace Enteties.Enemies.Systems
             {
                 return;
             }
+
+            m_spells = spells.OrderBy(spell => spell.count);
             
             m_spell = spell;
             m_target = target;
@@ -58,8 +63,27 @@ namespace Enteties.Enemies.Systems
             {
                 return false;
             }
+
+            m_count++;
+            var spell = m_spells.FirstOrDefault(spell => spell.count == m_count);
+
+            if (spell.spell is null)
+            {
+                m_spellCaster.Cast(m_spells[0].spell, m_target.position);
+            }
+            else
+            {
+                m_spellCaster.Cast(spell.spell, m_target.position);
+            }
+
+            if (m_count == m_maxCount)
+            {
+                m_count = 0;
+            }
             
             return true;
+            
+            
         }
     }
 }
