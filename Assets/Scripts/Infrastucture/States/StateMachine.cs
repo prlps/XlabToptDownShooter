@@ -1,48 +1,121 @@
 using System;
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
-public class StateMachine : MonoBehaviour
+namespace Infrastucture.States
 {
-    private IState m_state;
-    private Dictionary<Type, IState> m_states = new();
+    public sealed class StateMachine
+    {
+        private IState m_state;
+        private readonly Dictionary<Type, IState> m_states = new();
 
-    public void Initialize(params IState[] states)
-    {
-        if (m_state.Count > 0) return;
-    }
-    
-    public void ChangedState<T>()
-    {
-        where T : State
+        public void Initialize(params IState[] states)
         {
-            m_state?.Exit();
-            {
-                m_state = m_states[typeof(T)];
-            }
-            m_state.Enter;
+            m_states.Clear();
 
+            foreach (var state in states)
+            {
+                if (state == null)
+                {
+                    continue;
+                }
+
+                m_states[state.GetType()] = state;
+            }
         }
-    }
+
+        public void ChangeState<T>() where T : class, IState
+        {
+            if (!m_states.TryGetValue(typeof(T), out var nextState))
+            {
+                return;
+            }
+
+            if (ReferenceEquals(m_state, nextState))
+            {
+                return;
+            }
+
+            m_state?.Exit();
+            m_state = nextState;
+            m_state.Enter();
+        }
+
         public interface IState
         {
-            public void State();
-            
-            public void Exit();
+            void Enter();
+            void Exit();
         }
-    
-        public class MainMenuState : IState
-        {
-            private readonly StateMachine m_stateMachine;
-            
-            public MainMenuState(StateMachine m_stateMachine)
-                
-                
-            public void Enter() =>  throw new NotImplementedException();
-            
-            public void Exit() =>  throw new NotImplementedException();
+    }
 
+    public sealed class MainMenuState : StateMachine.IState
+    {
+        private readonly MainMenuView m_view;
+
+        public MainMenuState(MainMenuView view)
+        {
+            m_view = view;
         }
-        
-        
+
+        public void Enter()
+        {
+            if (m_view != null)
+            {
+                m_view.gameObject.SetActive(true);
+            }
+        }
+
+        public void Exit()
+        {
+            if (m_view != null)
+            {
+                m_view.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public sealed class GameplayState : StateMachine.IState
+    {
+        private readonly SpawnerEnemy m_enemySpawner;
+
+        public GameplayState(SpawnerEnemy enemySpawner)
+        {
+            m_enemySpawner = enemySpawner;
+        }
+
+        public void Enter()
+        {
+            if (m_enemySpawner != null)
+            {
+                m_enemySpawner.Spawn();
+            }
+        }
+
+        public void Exit()
+        {
+        }
+    }
+
+    public sealed class PauseMenuState : StateMachine.IState
+    {
+        public void Enter()
+        {
+        }
+
+        public void Exit()
+        {
+        }
+    }
+
+    public sealed class DeadState : StateMachine.IState
+    {
+        public void Enter()
+        {
+        }
+
+        public void Exit()
+        {
+        }
+    }
 }

@@ -1,22 +1,45 @@
 using System;
+using UnityEngine;
+
 namespace Magic.Buffs.Base
 {
-
     [Serializable]
-
-    public class TimeBuff : BaseBuff
+    public abstract class TimeBuff : BaseBuff, ITimeBuff
     {
-        [SerializeField] private void floar m_duration;
-        [NonSerialized] private float m_timer;
-        
-        protected override void OnDeinitializing() =>
-        m_timer = 0;
+        [SerializeField] private float m_duration = 1f;
+
+        public float Duration => m_duration;
+
+        [field: NonSerialized] public float Timer { get; private set; }
+
+        protected TimeBuff()
+        {
+        }
+
+        protected TimeBuff(string id, Sprite icon, BuffType type, float duration)
+            : base(id, icon, type)
+        {
+            m_duration = duration;
+        }
+
+        protected override void OnInitialize()
+        {
+            Timer = m_duration;
+            base.OnInitialize();
+        }
+
+        protected override void OnDeinitializing()
+        {
+            Timer = 0f;
+            base.OnDeinitializing();
+        }
 
         public sealed override void Update(float deltaTime)
         {
-            if (m_timer < m_duration)
+            if (Timer > 0f)
             {
-                m_timer += deltaTime;
+                OnUpdated(deltaTime);
+                Timer -= deltaTime;
             }
             else
             {
@@ -26,7 +49,6 @@ namespace Magic.Buffs.Base
 
         protected virtual void OnUpdated(float deltaTime)
         {
-            
         }
     }
 }

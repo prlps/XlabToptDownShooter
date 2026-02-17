@@ -1,39 +1,57 @@
+using System;
+using UnityEngine;
+
 namespace Magic.Buffs.Base
 {
-    public class BaseBuff : IBuff
+    [Serializable]
+    public abstract class BaseBuff : IBuff
     {
-        
-        protected BuffContainer container { get; private set; }
-         
-        public string Id { get; private set; }
-        
-        public BaseBuff(){}
+        [field: SerializeField] public string Id { get; private set; }
+        [field: SerializeField] public Sprite Icon { get; private set; }
+        [field: SerializeField] public BuffType Type { get; private set; }
 
-        protected BaseBuff(string id)
+        protected BuffContainer Container { get; private set; }
+
+        protected BaseBuff()
+        {
+        }
+
+        protected BaseBuff(string id, Sprite icon, BuffType type)
         {
             Id = id;
-        }
-        
-        public void Initialiaze(BuffContainer container);
-        {
-            this.container = container;
-            OnInitialized();
+            Icon = icon;
+            Type = type;
         }
 
-        protected virtual void OnInitialized()
-        
-        public void Deinitialise()
+        public void Initialize(BuffContainer container)
+        {
+            Container = container;
+            OnInitialize();
+        }
+
+        protected virtual void OnInitialize()
+        {
+        }
+
+        public void Deinitialize()
         {
             OnDeinitializing();
-            
-            container.Remove(this);
-            container = null;
+
+            if (Container != null)
+            {
+                Container.Remove(this);
+                Container = null;
+            }
         }
-        
-        protected virtual void OnDeinitializing(){}
-        
-        public virtual void Update(float deltaTime) {}
-        
-        
+
+        protected virtual void OnDeinitializing()
+        {
+        }
+
+        public virtual void Update(float deltaTime)
+        {
+        }
+
+        public abstract IBuff Clone();
     }
 }

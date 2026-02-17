@@ -1,23 +1,24 @@
+using UnityEngine;
+
 namespace Magic.Buffs
 {
-    public class IBuff
+    public interface IBuff
     {
-        public string Id { get; }
-        
-        public float duration { get; }
-        
-        public Sprite Icon { get; }
-        
-        public float timer { get; }
-        public  string Id { get; }
+        string Id { get; }
+        Sprite Icon { get; }
+        BuffType Type { get; }
 
-        public void Initialiaze(BuffContainer container);
+        void Initialize(BuffContainer container);
+        void Deinitialize();
 
-        public void Deinitialize();
+        void Update(float deltaTime);
 
-        public void Update(float deltaTime);
+        IBuff Clone();
+    }
 
-        public IBuff Clone();
-        
+    public interface ITimeBuff : IBuff
+    {
+        float Duration { get; }
+        float Timer { get; }
     }
 }

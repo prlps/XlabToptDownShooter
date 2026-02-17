@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Magic.Buffs;
 using UnityEngine;
 
@@ -10,38 +10,74 @@ namespace Magic.Views
         [SerializeField] private BuffElementView m_buffView;
         [SerializeField] private BuffContainer m_buffContainer;
 
+        private readonly Dictionary<string, BuffElementView> m_elements = new();
+
         private void OnEnable()
         {
+            if (m_buffContainer == null)
+            {
+                return;
+            }
+
             foreach (var buff in m_buffContainer.Buffs)
             {
-                CreateElement(buff);    
+                AddElement(buff);
             }
-            
-            m_buffContainer.BuffAdded += CreateElement()
+
+            m_buffContainer.BuffAdded += AddElement;
+            m_buffContainer.BuffRemoved += RemoveElement;
         }
 
         private void OnDisable()
         {
+            if (m_buffContainer == null)
+            {
+                return;
+            }
+
+            m_buffContainer.BuffAdded -= AddElement;
+            m_buffContainer.BuffRemoved -= RemoveElement;
+
             foreach (var buff in m_buffContainer.Buffs)
             {
-                CreateElement(buff);    
+                RemoveElement(buff);
             }
-            
-            m_buffContainer.BuffAdded -= CreateElement()
         }
 
         private void AddElement(IBuff buff)
         {
-            var element =  Instantiate(m_buffView, transform);
+            if (buff == null || m_elements.ContainsKey(buff.Id))
+            {
+                return;
+            }
+
+            var prefab = buff.Type == BuffType.Buff ? m_buffView : m_debuffView;
+            if (prefab == null)
+            {
+                return;
+            }
+
+            var element = Instantiate(prefab, transform);
             element.Initialize(buff);
+
+            m_elements.Add(buff.Id, element);
         }
 
         private void RemoveElement(IBuff buff)
         {
-            var element = m_elements[buff];
-            Destroy(element);
-            
-            m_elements.Remove(buff);
+            if (buff == null)
+            {
+                return;
+            }
+
+            if (!m_elements.TryGetValue(buff.Id, out var element))
+            {
+                return;
+            }
+
+            element.Deinitialize();
+            Destroy(element.gameObject);
+            m_elements.Remove(buff.Id);
         }
     }
 }

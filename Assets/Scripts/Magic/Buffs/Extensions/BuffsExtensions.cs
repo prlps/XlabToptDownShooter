@@ -1,11 +1,16 @@
-namespace Magic.Buffs.Extensions
+namespace Magic.Buffs
 {
-    public class BuffsExtensions
+    public static class BuffsExtensions
     {
-        public static void Refresh(this IBuff buff)
+        public static void Refresh(this IBuff buff, BuffContainer container)
         {
+            if (buff == null || container == null)
+            {
+                return;
+            }
+
             buff.Deinitialize();
-            buff.Initialiaze();
+            buff.Initialize(container);
         }
     }
 }

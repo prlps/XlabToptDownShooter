@@ -6,35 +6,55 @@ namespace Magic.Buffs.Base.Impls
     [Serializable]
     public class PosionDebuff : TimeBuff
     {
-        [SerializeField][Min(0)] private float m_interval = 1;
-        [SerializeField][Min(0)] private float m_damagedPerSeconds = 2f;
+        [SerializeField] [Min(0f)] private float m_interval = 1f;
+        [SerializeField] [Min(0f)] private float m_damagePerSecond = 2f;
 
         [NonSerialized] private float m_timer;
+        private IHealt m_health;
 
-        protected override void OnInitialized()
+        public PosionDebuff()
         {
-            base.OnInitialized();
-            m_health = container.GetComponent<IHealt>();
+        }
+
+        public PosionDebuff(string id, Sprite icon, BuffType type, float duration, float interval, float damagePerSecond)
+            : base(id, icon, type, duration)
+        {
+            m_interval = interval;
+            m_damagePerSecond = damagePerSecond;
+        }
+
+        protected override void OnInitialize()
+        {
+            base.OnInitialize();
+            m_health = Container != null ? Container.GetComponent<IHealt>() : null;
         }
 
         protected override void OnDeinitializing()
         {
-            m_timer = 0;
-            m_health = 0;
+            m_timer = 0f;
+            m_health = null;
             base.OnDeinitializing();
         }
-        
-        protected override void OnUpdate(float deltaTime)
+
+        protected override void OnUpdated(float deltaTime)
         {
+            if (m_health == null)
+            {
+                Deinitialize();
+                return;
+            }
+
             if (m_timer < m_interval)
             {
                 m_timer += deltaTime;
+                return;
             }
-            else
-            {
-                m_timer = 0;
-                m_health.TakeDamage(m_damagedPerSeconds);
-            }
+
+            m_timer = 0f;
+            m_health.TakeDamage(m_damagePerSecond);
         }
+
+        public override IBuff Clone() =>
+            new PosionDebuff(Id, Icon, Type, Duration, m_interval, m_damagePerSecond);
     }
 }

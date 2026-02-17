@@ -1,9 +1,8 @@
 namespace Enteties
 {
-    public class IAcceleration
+    public interface IAcceleration
     {
-        public void IncreaseAcceleration(float delta);
-        
-        public void DecreaseAcceleration(float delta);
+        void IncreaseAcceleration(float delta);
+        void DecreaseAcceleration(float delta);
     }
 }

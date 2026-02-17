@@ -9,14 +9,10 @@ namespace Magic.Systems
     public sealed class SpellCaster
     {
         private readonly Transform m_casterTransform;
-        private ObjectPool<GameObject> m_visualEffectPool;
 
-        public SpellCaster(Transform casterTransform, bool isSingleSpell = false)
+        public SpellCaster(Transform casterTransform)
         {
-            m_isSingleSpell = isSingleSpell;
             m_casterTransform = casterTransform;
-
-            
         }
 
         public void Cast(BaseSpellData spell, Vector3 worldPosition)
@@ -39,9 +35,14 @@ namespace Magic.Systems
                     break;
                 case AoeSpellData aoeSpell:
                     if (aoeSpell.isTarget)
+                    {
                         CastAoe(aoeSpell, worldPosition);
+                    }
                     else
+                    {
                         CastAoe(aoeSpell, m_casterTransform.position);
+                    }
+
                     break;
             }
         }
@@ -74,22 +75,27 @@ namespace Magic.Systems
             {
                 projectileObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 projectileObj.transform.position = m_casterTransform.position;
-                projectileObj.name = string.IsNullOrEmpty(targetSpell.spellName) ? "Projectile" : targetSpell.spellName + "_Projectile";
+                projectileObj.name = string.IsNullOrEmpty(targetSpell.spellName)
+                    ? "Projectile"
+                    : targetSpell.spellName + "_Projectile";
 
                 var collider = projectileObj.GetComponent<Collider>();
                 if (collider != null)
+                {
                     collider.isTrigger = true;
+                }
 
                 var rb = projectileObj.AddComponent<Rigidbody>();
                 rb.isKinematic = true;
             }
 
             var spellProjectile = projectileObj.GetComponent<ISpellProjectile>() ?? projectileObj.AddComponent<FallbackSpellProjectile>();
-
             spellProjectile.Initialize(worldPosition, targetSpell.speed, targetSpell.effects);
         }
 
-        private void CastNonTarget(NonTargetSpellData nonTargetSpell) { }
+        private void CastNonTarget(NonTargetSpellData nonTargetSpell)
+        {
+        }
 
         private void CastAoe(AoeSpellData aoeSpell, Vector3 worldPosition)
         {
@@ -107,21 +113,7 @@ namespace Magic.Systems
             aoeObj.transform.position = worldPosition;
 
             var spellAoe = aoeObj.GetComponent<ISpellAoe>() ?? aoeObj.AddComponent<SpellAoe>();
-
             spellAoe.Initialize(worldPosition, aoeSpell.radius, aoeSpell.effects);
-
-            if (!m_isSingleSpell)
-            {
-                m_visualEffectPool ??= new ObjectPool<GameObject>(
-                    createFunc: Create,
-                    actionOnGet: gm => gm.SetActive(true),
-                    actionOnDestroy: Object.Destroy);
-                aoe = m_visualEffectPool.Get();
-            }
         }
-        
-        private void SetLayer(GameObject visualEffect) =>
-            visualEffect.layer = m_casterTransform.gameObject.layer;
-        
     }
 }

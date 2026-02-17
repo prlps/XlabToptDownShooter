@@ -1,43 +1,52 @@
+using System;
 using Enteties;
-using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Magic.Buffs.Base.Impls
 {
-    [Serializeble]
-    public class AccelerationBuff : TimedBuff
+    [Serializable]
+    public class AccelerationBuff : TimeBuff
     {
-        [SerializeField] private float m_value;
+        [SerializeField] [Min(0f)] private float m_value = 1f;
 
-        protected override void OnInitialize()
+        private IAcceleration m_acceleration;
+
+        public AccelerationBuff()
         {
-            base.OnInitialized();
-            
-            m_acceleration = container.GetComponent<IAcceleration>();
-
-            if (m_acceleration is null)
-            {
-                Deinitialize();
-            }
-            else
-            {
-                {
-                    m_acceleration.IncreaseAcceleration(m_value);
-                }
-            }
         }
-        
-        public AccelerationBuff(
-            srting id,
-            float duration,
-            float value)
-            : base(id, duration)
+
+        public AccelerationBuff(string id, Sprite icon, BuffType type, float duration, float value)
+            : base(id, icon, type, duration)
         {
             m_value = value;
         }
-            
-        
-        public overide IBuff Clone()
-            
-            
+
+        protected override void OnInitialize()
+        {
+            base.OnInitialize();
+            m_acceleration = Container != null ? Container.GetComponent<IAcceleration>() : null;
+
+            if (m_acceleration == null)
+            {
+                Deinitialize();
+                return;
+            }
+
+            m_acceleration.IncreaseAcceleration(m_value);
+        }
+
+        protected override void OnDeinitializing()
+        {
+            if (m_acceleration != null)
+            {
+                m_acceleration.DecreaseAcceleration(m_value);
+                m_acceleration = null;
+            }
+
+            base.OnDeinitializing();
+        }
+
+        public override IBuff Clone() =>
+            new AccelerationBuff(Id, Icon, Type, Duration, m_value);
     }
 }

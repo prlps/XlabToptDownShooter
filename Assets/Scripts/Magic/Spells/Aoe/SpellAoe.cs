@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Magic.Spells.Aoe
 {
@@ -10,13 +10,17 @@ namespace Magic.Spells.Aoe
             var colliders = Physics.OverlapSphere(targetPosition, radius);
             foreach (var collider in colliders)
             {
-                if (collider.gameObject.layer == )
-                
-               var effectables =  collider.GetComponent<IEffectable>();
-                
+                if (collider.gameObject.layer == gameObject.layer)
+                {
+                    continue;
+                }
+
                 if (collider.TryGetComponent<IEffectable>(out var effectable))
                 {
-                    effects.ApplyEffects(effectable);
+                    foreach (var effect in effects)
+                    {
+                        effect?.Apply(effectable);
+                    }
                 }
             }
         }
