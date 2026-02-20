@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace UI
@@ -38,8 +39,12 @@ namespace UI
             }
         }
 
-        private void OnPlayClick() =>
+        private void OnPlayClick()
+        {
+            SceneManager.LoadScene(GlobalConstantsList.Scense.Game);
             PlayClicked?.Invoke();
+
+        }
 
         private void OnExitClick() =>
             ExitClicked?.Invoke();

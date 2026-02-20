@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UI;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Infrastucture.States
@@ -116,6 +117,14 @@ namespace Infrastucture.States
 
         public void Exit()
         {
+        }
+    }
+
+    public class BootstrapState : IState
+    {
+        public void Enter()
+        {
+            ServiceLocator.Register();
         }
     }
 }
