@@ -1,4 +1,5 @@
 using System;
+using Infrastucture;
 using UnityEngine;
 
 public class SpawnerEnemy : MonoBehaviour
@@ -15,6 +16,11 @@ public class SpawnerEnemy : MonoBehaviour
 
     public void Spawn()
     {
+        var playerTransform = ServiceLocator
+            .Resolve <PlayerFactory>()
+            .Create()
+            .transform;
+        
         foreach (var spawnPoint in m_spawnPoints)
         {
             var prefab = GetEnemy();
