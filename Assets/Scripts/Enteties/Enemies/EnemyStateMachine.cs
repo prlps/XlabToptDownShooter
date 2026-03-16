@@ -1,26 +1,27 @@
-﻿namespace Enteties.Enemies
+using System;
+
+namespace Enteties.Enemies
 {
     public class EnemyStateMachine
     {
-        public EnemyState currentState {get; private set; };
-    
+        public EnemyState CurrentState { get; private set; }
         public event Action<EnemyState, EnemyState> StateChanged;
-        
-    private EnemyStateMaschine()
-    {
-        currentState = EnemyState.Idle;
-    }
-    
-    public void ChangeState(EnemyState nextState)
-    {
-        if (currentState is EnemyState.Dead || currentState == nextState)
+
+        public EnemyStateMachine()
         {
-            return;
+            CurrentState = EnemyState.Idle;
         }
 
-        var previousState = currentState;
-        currentState = nextState;
+        public void ChangeState(EnemyState nextState)
+        {
+            if (CurrentState == nextState || CurrentState is EnemyState.Dead)
+            {
+                return;
+            }
 
-        StateChanged?.Invoke(previousState, currentState);
+            var previousState = CurrentState;
+            CurrentState = nextState;
+            StateChanged?.Invoke(previousState, nextState);
+        }
     }
 }

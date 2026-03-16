@@ -1,18 +1,22 @@
 using System;
-using UnityEngine;
 using Magic.Spells.Aoe;
 using Magic.Spells.Projectiles;
-using Object = UnityEngine.Object;
+using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Magic.Systems
 {
     public sealed class SpellCaster
     {
         private readonly Transform m_casterTransform;
+        private ObjectPool<GameObject> m_visualEffectPool;
 
-        public SpellCaster(Transform casterTransform)
+        private readonly bool m_isSingleSpell;
+
+        public SpellCaster(Transform casterTransform, bool isSingleSpell = false)
         {
             m_casterTransform = casterTransform;
+            m_isSingleSpell = isSingleSpell;
         }
 
         public void Cast(BaseSpellData spell, Vector3 worldPosition)
@@ -34,86 +38,77 @@ namespace Magic.Systems
                     CastNonTarget(nonTargetSpell);
                     break;
                 case AoeSpellData aoeSpell:
-                    if (aoeSpell.isTarget)
-                    {
-                        CastAoe(aoeSpell, worldPosition);
-                    }
-                    else
-                    {
-                        CastAoe(aoeSpell, m_casterTransform.position);
-                    }
-
+                    CastAoe(aoeSpell, aoeSpell.isTarget ? worldPosition : m_casterTransform.position);
                     break;
             }
         }
 
-        private void CastSelf(SelfSpellData selfSpell)
+        private void CastSelf(SelfSpellData spell)
         {
-            if (selfSpell.visualEffect)
+            if (spell.visualEffect)
             {
-                Object.Instantiate(selfSpell.visualEffect, m_casterTransform.position, Quaternion.identity);
+                var visualEffect = UnityEngine.Object.Instantiate(spell.visualEffect, m_casterTransform.position, Quaternion.identity);
+                SetLayer(visualEffect);
             }
 
-            if (m_casterTransform.TryGetComponent<IEffectable>(out var effectable))
-            {
-                foreach (var effect in selfSpell.effects)
-                {
-                    effect?.Apply(effectable);
-                }
-            }
+            var effectable = m_casterTransform.GetComponent<IEffectable>();
+            spell.effects.ApplyEffect(effectable);
         }
 
-        private void CastTarget(TargetSpellData targetSpell, Vector3 worldPosition)
+        private void CastTarget(TargetSpellData spell, Vector3 worldPosition)
         {
-            GameObject projectileObj;
-
-            if (targetSpell.visualEffect)
+            if (!spell.visualEffect)
             {
-                projectileObj = Object.Instantiate(targetSpell.visualEffect, m_casterTransform.position, Quaternion.identity);
+                throw new NullReferenceException("Target spell must have visualEffect");
+            }
+
+            var projectile = UnityEngine.Object.Instantiate(spell.visualEffect, m_casterTransform.position, Quaternion.identity);
+            SetLayer(projectile);
+
+            var spellProjectile =
+                projectile.GetComponent<ISpellProjectile>() ??
+                projectile.AddComponent<FallbackSpellProjectile>();
+
+            spellProjectile.Initialize(worldPosition, spell.speed, spell.effects);
+        }
+
+        private void CastNonTarget(NonTargetSpellData spell)
+        {
+        }
+
+        private void CastAoe(AoeSpellData spell, Vector3 worldPosition)
+        {
+            GameObject aoe;
+
+            if (m_isSingleSpell)
+            {
+                m_visualEffectPool ??= new ObjectPool<GameObject>(
+                    () => Create(),
+                    gm => gm.SetActive(true),
+                    gm => gm.SetActive(false),
+                    UnityEngine.Object.Destroy);
+
+                aoe = m_visualEffectPool.Get();
             }
             else
             {
-                projectileObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                projectileObj.transform.position = m_casterTransform.position;
-                projectileObj.name = string.IsNullOrEmpty(targetSpell.spellName)
-                    ? "Projectile"
-                    : targetSpell.spellName + "_Projectile";
-
-                var collider = projectileObj.GetComponent<Collider>();
-                if (collider != null)
-                {
-                    collider.isTrigger = true;
-                }
-
-                var rb = projectileObj.AddComponent<Rigidbody>();
-                rb.isKinematic = true;
+                aoe = Create();
             }
 
-            var spellProjectile = projectileObj.GetComponent<ISpellProjectile>() ?? projectileObj.AddComponent<FallbackSpellProjectile>();
-            spellProjectile.Initialize(worldPosition, targetSpell.speed, targetSpell.effects);
+            SetLayer(aoe);
+            aoe.transform.position = worldPosition;
+
+            var spellAoe =
+                aoe.GetComponent<ISpellAoe>() ??
+                aoe.AddComponent<SpellAoe>();
+
+            spellAoe.Initialize(worldPosition, spell.radius, spell.effects);
+
+            GameObject Create() =>
+                UnityEngine.Object.Instantiate(spell.visualEffect, m_casterTransform.position, Quaternion.identity);
         }
 
-        private void CastNonTarget(NonTargetSpellData nonTargetSpell)
-        {
-        }
-
-        private void CastAoe(AoeSpellData aoeSpell, Vector3 worldPosition)
-        {
-            GameObject aoeObj;
-
-            if (aoeSpell.visualEffect)
-            {
-                aoeObj = Object.Instantiate(aoeSpell.visualEffect, m_casterTransform.position, Quaternion.identity);
-            }
-            else
-            {
-                aoeObj = new GameObject("AoeEffect");
-            }
-
-            aoeObj.transform.position = worldPosition;
-
-            var spellAoe = aoeObj.GetComponent<ISpellAoe>() ?? aoeObj.AddComponent<SpellAoe>();
-            spellAoe.Initialize(worldPosition, aoeSpell.radius, aoeSpell.effects);
-        }
+        private void SetLayer(GameObject visualEffect) =>
+            visualEffect.layer = m_casterTransform.gameObject.layer;
     }
 }

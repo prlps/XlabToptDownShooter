@@ -1,14 +1,17 @@
 using System;
 using UnityEngine;
 
-public class HealthComponent : MonoBehaviour, IHealt
+public class HealthComponent : MonoBehaviour, IHealt, IEffectable
 {
-    public event Action Died;
-    public event Action ValueChanged;
+    public event Action died;
+    public event Action valueChanged;
 
     private float m_value;
     private bool m_initialized;
-    public float Value
+
+    public float maxValue { get; private set; }
+
+    public float value
     {
         get => m_value;
         private set
@@ -17,13 +20,13 @@ public class HealthComponent : MonoBehaviour, IHealt
             {
                 return;
             }
-            m_value = value < 0 ? 0 : value;
 
-            ValueChanged?.Invoke();
+            m_value = value < 0 ? 0 : value;
+            valueChanged?.Invoke();
 
             if (m_value == 0f)
             {
-                Died?.Invoke();
+                died?.Invoke();
             }
         }
     }
@@ -34,23 +37,29 @@ public class HealthComponent : MonoBehaviour, IHealt
         {
             throw new InvalidOperationException("HealthComponent is already initialized");
         }
-        m_value = value;
+
+        this.value = value;
+        maxValue = value;
         m_initialized = true;
     }
 
     public void Heal(float heal)
     {
         if (heal < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(heal), "Heal cannot be negative");
+        }
 
-        Value += heal;
+        value += heal;
     }
 
     public void TakeDamage(float damage)
     {
         if (damage < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(damage), "Damage cannot be negative");
+        }
 
-        Value -= damage;
+        value -= damage;
     }
 }

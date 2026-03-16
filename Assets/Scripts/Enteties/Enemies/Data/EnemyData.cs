@@ -1,36 +1,29 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "EnemyData", menuName = "Data/EnemyData")]
 public class EnemyData : ScriptableObject
 {
-	[SerializeField] private m_defaultSpell;
-	[SerializeField] private SpellEnemyData[] m_spells;
-	[SerializeField][Min(0)] private float m_healt;
-	[SerializeField] [Range(0f,100f)] private float m_speed;
-	[SerializeField] [Min(0f)] private float m_attackTime;
+    [field: SerializeField] public AttackEnemyType enemyType { get; private set; }
+    [SerializeField] [Min(0)] public float health;
 
-	[SerializeField] private AttackEnemyType m_enemyType;
-	[SerializeField][Min(0)] private float m_attackRange;
-	[SerializeField] private BaseSpellData m_spell;
+    [FormerlySerializedAs("spellData")]
+    [SerializeField] private BaseSpellData m_defaultSpell;
 
-	[Header("Attack")]
+    [field: SerializeField] [Range(0f, 100f)] public float speed { get; private set; }
+    [field: SerializeField] [Min(0f)] public float attackTime { get; private set; }
+    [field: SerializeField] [Min(0f)] public float attackRange { get; private set; }
+    [field: SerializeField] private SpellEnemyData[] m_spells;
 
-	//TODO Add ProjectileRange - область поражения снаряда
-	//TODO Add Damage - 
-	
-	public IReadOnlyList<SpellEnemyData> Spells => m_spells;
+    public BaseSpellData defaultSpell => m_defaultSpell;
+    public IReadOnlyList<SpellEnemyData> spells => m_spells;
 
-	public float healt => m_healt;
-	public float speed => m_speed;
-	public float attacTime => m_attackTime;
-	public float attackRange => m_attackRange;
-
-	public AttackEnemyType enemyType => m_enemyType;
-
-	[Serializable]
-	public struct SpellEnemyData
-	{
-		[SerializeField] public int count;
-		[SerializeField] public BaseSpellData spell;
-	}
+    [Serializable]
+    public struct SpellEnemyData
+    {
+        [SerializeField] public BaseSpellData spell;
+        [SerializeField] public int count;
+    }
+}

@@ -1,71 +1,66 @@
 using System;
 using Enteties.Enemies;
+using Enteties.Enemies.Systems;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] private HealthComponent m_health;
-    private EnemyData m_data;
-    [SerializeField] private AttackEnemy m_attack;
-
-    public HealthComponent health => m_health;
-
     public event Action<Enemy> Died;
 
-    //TODO add HealtgComponent
-    //TODO add Movment
-    //TODO Add AttackComponent
+    [SerializeField] private HealthComponent m_health;
+    [SerializeField] private AttackEnemySystem m_attack;
+    [SerializeField] private EnemyMovment m_movment;
 
-    private void UpdateState()
-    {
-        var isInAttackRange = IsInRange();
-        
-        switch (m_stateMachine.currentState);
-        {
-            case EnemyState.Idle: HandIdleState(isInAttackRange); break;
-            case EnemyState.Move: HandleMoveState(isInAttackRange); break;
-            case EnemyState.Attack: HandleAttackState(isInAttackRange); break;
-        }
-    }
-    
+    private EnemyData m_data;
+    private Transform m_playerTransform;
+    private EnemyStateMachine m_stateMachine;
+
     private void Awake()
     {
-  
+        m_stateMachine = new EnemyStateMachine();
+        EnsureComponents();
     }
 
     private void OnEnable()
     {
-        m_health.Died -= OnDied;
+        if (m_health != null)
+        {
+            m_health.died += OnDied;
+        }
+
+        m_stateMachine.StateChanged += OnStateChanged;
     }
 
     private void OnDisable()
     {
         if (m_health != null)
         {
-            m_health.ValueChanged -= OnValueChanged;
-            m_health.Died -= OnDiedInternal;
+            m_health.died -= OnDied;
         }
+
+        m_stateMachine.StateChanged -= OnStateChanged;
     }
 
-    private void OnValueChanged()
+    private void Update()
     {
-        Debug.Log($"Health Changed {m_health.Value}");
+        if (m_stateMachine.CurrentState is EnemyState.Dead || m_data == null)
+        {
+            return;
+        }
+
+        UpdateState();
     }
 
-    public void Initialize(EnemyData data, Transform playerTramsform)
+    public void Initialize(EnemyData data, Transform playerTransform)
     {
         m_data = data;
-        if (m_health != null)
-            m_health.Initialize(data.healt);
-        m_attack.Initialize(data.spell, data.attackRange.player);
+        m_playerTransform = playerTransform;
 
-        m_stateMachine = EnemyStateMachine();
+        EnsureComponents();
 
-        m_data = data;
-        m_health.Initialize(data.healt);
-        m_attack.Initialize(data.spell, datta.attackTime, playerTramsform);
-
-        m_stateMachine ??= new EnemyStateMachine();
+        m_health.Initialize(data.health);
+        m_attack.Initialize(data.defaultSpell, data.spells, playerTransform, data.attackTime);
+        m_movment.Initialize(data.speed, playerTransform);
 
         if (data.enemyType == AttackEnemyType.Melee)
         {
@@ -73,24 +68,94 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void EnsureComponents()
+    {
+        if (m_health == null)
+        {
+            m_health = GetComponent<HealthComponent>() ?? gameObject.AddComponent<HealthComponent>();
+        }
+
+        if (m_attack == null)
+        {
+            m_attack = GetComponent<AttackEnemySystem>() ?? gameObject.AddComponent<AttackEnemySystem>();
+        }
+
+        if (m_movment == null)
+        {
+            m_movment = GetComponent<EnemyMovment>() ?? gameObject.AddComponent<EnemyMovment>();
+        }
+    }
+
+    private void UpdateState()
+    {
+        var isInAttackRange = IsInRange();
+
+        switch (m_stateMachine.CurrentState)
+        {
+            case EnemyState.Idle:
+                HandleIdleState(isInAttackRange);
+                break;
+            case EnemyState.Move:
+                HandleMoveState(isInAttackRange);
+                break;
+            case EnemyState.Attack:
+                HandleAttackState(isInAttackRange);
+                break;
+        }
+    }
+
+    private void HandleAttackState(bool isInAttackRange)
+    {
+        m_attack.TryAttack();
+
+        if (!isInAttackRange)
+        {
+            if (m_data.enemyType == AttackEnemyType.Melee)
+            {
+                m_stateMachine.ChangeState(EnemyState.Move);
+            }
+            else
+            {
+                m_stateMachine.ChangeState(EnemyState.Idle);
+            }
+        }
+    }
+
+    private void HandleMoveState(bool isInAttackRange)
+    {
+        if (isInAttackRange)
+        {
+            m_stateMachine.ChangeState(EnemyState.Attack);
+        }
+    }
+
+    private void HandleIdleState(bool isInAttackRange)
+    {
+        if (m_data.enemyType == AttackEnemyType.Range && isInAttackRange)
+        {
+            m_stateMachine.ChangeState(EnemyState.Attack);
+        }
+    }
+
     private bool IsInRange()
     {
-        if (m_playerTransform)
+        if (!m_playerTransform)
         {
             return false;
         }
 
-        var distance = Vector3.Distance(transform.position, m_playerTransform);
+        var distance = Vector3.Distance(transform.position, m_playerTransform.position);
+        return distance < m_data.attackRange;
     }
-    
-    private void OnDiedInternal()
+
+    private void OnDied()
     {
-        Debug.Log("Enemy Died");
+        m_stateMachine.ChangeState(EnemyState.Dead);
         Died?.Invoke(this);
         Destroy(gameObject);
     }
-    
-    private void OnStateChanged(EnemyState prviousState previousState, EnemyState nextState)
+
+    private void OnStateChanged(EnemyState previousState, EnemyState nextState)
     {
         if (previousState is EnemyState.Move)
         {
@@ -99,7 +164,7 @@ public class Enemy : MonoBehaviour
 
         if (nextState is EnemyState.Move)
         {
-            m_movment.StateMoving();
+            m_movment.StartMoving();
         }
     }
 }

@@ -1,21 +1,51 @@
-﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using Magic.Systems;
 using UnityEngine;
 
 namespace Enteties.Enemies.Systems
 {
-    public class AttackEnemySystem : MonoBehaviour
-
+    public sealed class AttackEnemySystem : MonoBehaviour
     {
         private Transform m_target;
-        private BaseSpellData m_spell;
-        private float m_cooldownTimer;
+        private IReadOnlyList<EnemyData.SpellEnemyData> m_spells;
         private SpellCaster m_spellCaster;
-        
+
         private float m_attackTime;
+        private float m_cooldownTimer;
         private bool m_isInitialized;
-        
+
         private int m_maxCount;
+        private int m_count;
+        private BaseSpellData m_defaultSpell;
+
+        public void Initialize(
+            BaseSpellData defaultSpell,
+            IReadOnlyList<EnemyData.SpellEnemyData> spells,
+            Transform target,
+            float attackTime)
+        {
+            if (m_isInitialized)
+            {
+                return;
+            }
+
+            m_defaultSpell = defaultSpell;
+            m_target = target;
+            m_attackTime = attackTime;
+            m_spellCaster = new SpellCaster(transform);
+
+            m_spells = spells != null
+                ? spells.OrderBy(s => s.count).ToArray()
+                : new EnemyData.SpellEnemyData[0];
+
+            m_maxCount = m_spells.Count > 0
+                ? m_spells.Last().count
+                : 0;
+
+            m_isInitialized = true;
+        }
+
         private void Update()
         {
             if (!m_isInitialized)
@@ -28,26 +58,6 @@ namespace Enteties.Enemies.Systems
                 m_cooldownTimer -= Time.deltaTime;
             }
         }
-        
-        
-        m_maxCount = spells[^1].count
-        private void Initialize(BaseSpellData spell, float attackTime, Transform target)
-        {
-
-            if (m_isInitialized)
-            {
-                return;
-            }
-
-            m_spells = spells.OrderBy(spell => spell.count);
-            
-            m_spell = spell;
-            m_target = target;
-            m_attackTime = attackTime;
-            m_spell = new SpellCaster(transform);
-            
-            m_isInitialized = true;
-        }
 
         public bool TryAttack()
         {
@@ -55,9 +65,6 @@ namespace Enteties.Enemies.Systems
             {
                 return false;
             }
-            
-            m_spellCaster.Cast(m_spell, m_target.position);
-            m_cooldownTimer = m_attackTime;
 
             if (m_cooldownTimer > 0)
             {
@@ -65,25 +72,28 @@ namespace Enteties.Enemies.Systems
             }
 
             m_count++;
-            var spell = m_spells.FirstOrDefault(spell => spell.count == m_count);
+            BaseSpellData spellToCast = null;
 
-            if (spell.spell is null)
+            if (m_spells.Count > 0)
             {
-                m_spellCaster.Cast(m_spells[0].spell, m_target.position);
-            }
-            else
-            {
-                m_spellCaster.Cast(spell.spell, m_target.position);
+                var spell = m_spells.FirstOrDefault(s => s.count == m_count);
+                spellToCast = spell.spell;
             }
 
-            if (m_count == m_maxCount)
+            if (spellToCast == null)
+            {
+                spellToCast = m_defaultSpell;
+            }
+
+            m_spellCaster.Cast(spellToCast, m_target.position);
+
+            if (m_maxCount > 0 && m_count == m_maxCount)
             {
                 m_count = 0;
             }
-            
+
+            m_cooldownTimer = m_attackTime;
             return true;
-            
-            
         }
     }
 }

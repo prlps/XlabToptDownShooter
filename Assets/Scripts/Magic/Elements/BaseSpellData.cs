@@ -16,7 +16,6 @@ public abstract class BaseSpellData : ScriptableObject
 
     public IReadOnlyList<ElementType> combination => m_combination;
 
-    // Expose effects as a read-only list for consumers
     public IReadOnlyList<IEffect> effects => m_effects;
 
     private void OnValidate()

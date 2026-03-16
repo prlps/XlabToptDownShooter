@@ -13,6 +13,7 @@ namespace Players
 
         [SerializeField] private NavMeshAgent m_agent;
 
+        private const float NavMeshSnapDistance = 8f;
         private float m_speed;
         private float m_acceleration;
         private float m_angularSpeed;
@@ -32,11 +33,13 @@ namespace Players
             {
                 m_agent = GetComponent<NavMeshAgent>();
             }
+
+            TrySnapToNavMesh();
         }
 
         private void Update()
         {
-            if (!m_hasDestination || m_agent == null || m_agent.pathPending)
+            if (!m_hasDestination || !TrySnapToNavMesh() || m_agent.pathPending)
             {
                 return;
             }
@@ -61,6 +64,7 @@ namespace Players
                 return;
             }
 
+            TrySnapToNavMesh();
             m_agent.speed = speed;
             m_agent.angularSpeed = angularSpeed;
             m_agent.updateRotation = false;
@@ -95,6 +99,11 @@ namespace Players
                 return;
             }
 
+            if (!TrySnapToNavMesh())
+            {
+                return;
+            }
+
             m_agent.SetDestination(navMeshPoint);
             m_hasDestination = true;
 
@@ -125,6 +134,26 @@ namespace Players
 
             var acceleration = m_acceleration > 0f ? m_acceleration : 1f;
             m_agent.speed = m_speed * acceleration;
+        }
+
+        private bool TrySnapToNavMesh()
+        {
+            if (m_agent == null || !m_agent.isActiveAndEnabled)
+            {
+                return false;
+            }
+
+            if (m_agent.isOnNavMesh)
+            {
+                return true;
+            }
+
+            if (NavMesh.SamplePosition(transform.position, out var hit, NavMeshSnapDistance, NavMesh.AllAreas))
+            {
+                return m_agent.Warp(hit.position);
+            }
+
+            return false;
         }
     }
 }

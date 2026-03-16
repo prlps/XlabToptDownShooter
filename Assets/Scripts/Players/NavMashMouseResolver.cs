@@ -30,7 +30,18 @@ namespace Players
             if (m_mouse == null) m_mouse = Mouse.current;
         }
 
-        public Vector3 mousePosition => m_mouse != null ? m_mouse.position.ReadValue() : (Vector3)Input.mousePosition;
+        public Vector3 mousePosition
+        {
+            get
+            {
+                if (m_mouse == null)
+                {
+                    m_mouse = Mouse.current;
+                }
+
+                return m_mouse != null ? m_mouse.position.ReadValue() : Vector3.zero;
+            }
+        }
 
         public Vector3? GetNavMeshPoint(Vector3 mousePosition)
         {

@@ -14,7 +14,7 @@ public sealed class PlayerRotationCalculator
     public Vector3 Calculate(Vector3 mousePosition)
     {
         var playerScreenPosition = m_camera.WorldToScreenPoint(m_playerTransform.position);
-        var delta = (Vector2)mousePosition - (Vector2)playerScreenPosition;
+        var delta = (Vector3)mousePosition - (Vector3)playerScreenPosition;
 
         var cameraRight = m_camera.transform.right;
         cameraRight.y = 0f;
@@ -26,9 +26,9 @@ public sealed class PlayerRotationCalculator
 
         var worldDirection = cameraRight * delta.x + cameraForward * delta.y;
 
-        if (worldDirection.sqrMagnitude > 0.0001f)
+        if (worldDirection.sqrMagnitude > 0.001f)
         {
-            return m_playerTransform.position + worldDirection;
+            return m_playerTransform.position - worldDirection;
         }
 
         return Vector3.zero;

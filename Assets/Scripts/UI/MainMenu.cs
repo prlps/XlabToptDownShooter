@@ -1,8 +1,8 @@
+using UnityEngine;
+
 namespace UI
 {
-    [Req]
-    public class MainMenu
+    public class MainMenu : MonoBehaviour
     {
-        
     }
 }
